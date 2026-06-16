@@ -1,0 +1,8 @@
+id: r-enqueue
+kind: code
+repo: default
+path: src/api.py
+symbol: "def enqueue_job"
+retrieved: 2026-06-16
+basis: "enqueue_job publishes a background job to the queue."
+body_sha256: sha256:ac903cbb2fb38ad3d6a99a2ddd926db59bbf9b04bc8be319912afc28dda1c510

@@ -1,0 +1,4 @@
+id: r-worker-spec
+kind: spec
+retrieved: 2026-06-16
+basis: "DESIGN.md says a worker subscribes to the job queue — not yet built."

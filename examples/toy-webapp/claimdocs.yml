@@ -1,0 +1,37 @@
+# toy-webapp — a deliberately boring, NON-AG claimdocs case. The genericity proof:
+# if claimdocs documents frontend->api->sqlite with no AG vocabulary leaking, it is generic.
+# Uses the canonical mode spine (documented/specified/derived/candidate) directly — no aliases.
+project: toy-webapp
+title: "Toy webapp — claim graph"
+default_modes: [documented]
+witnessing_basis_kinds: [code, test]
+
+claim_modes:
+  documented: { color: "#4fc3f7", style: solid,  witnesses: true,
+                help: "witnessed in code / tests" }
+  specified:  { color: "#f5a623", style: dashed,
+                help: "designed but not built" }
+  derived:    { color: "#c08bff", style: dotted, requires_derivation: true,
+                help: "follows from other edges" }
+  candidate:  { color: "#5a6068", style: dotted, excluded_from_default: true, max_per_case: 2,
+                help: "proposed, not committed" }
+
+basis_kinds:
+  code: { resolvable: true, help: "file + symbol" }
+  test: { resolvable: true, help: "a test symbol" }
+  spec: { help: "a design note / ADR" }
+
+node_kinds:
+  client:    { color: "#4fc3f7", lane: client, label: Client,    what: "a browser / caller" }
+  service:   { color: "#7aa2ff", lane: service, label: Service,  what: "an app process" }
+  datastore: { color: "#5bbf6a", lane: data, shape: round-tag, label: Datastore, what: "a database" }
+  queue:     { color: "#fbc02d", lane: async, label: Queue,      what: "a message queue" }
+
+edge_kinds:
+  calls:     { role: flow, verb: "calls" }
+  persists:  { role: flow, verb: "persists to" }
+  publishes: { role: emit, verb: "publishes to" }
+  subscribes: { role: flow, verb: "subscribes to" }
+  derives:   { role: derive, verb: "is composed from" }
+
+lanes: [client, service, data, async]

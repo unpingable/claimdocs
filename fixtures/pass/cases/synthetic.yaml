@@ -1,0 +1,15 @@
+case_id: synthetic-pass
+title: "all modes valid"
+receipts_inline:
+  - { id: s-code, kind: code, repo: default, path: x.py, symbol: "Foo", retrieved: 2026-06-16, basis: ok }
+  - { id: s-spec, kind: spec, retrieved: 2026-06-16, basis: ok }
+nodes:
+  - { id: g, type: gate, label: G }
+  - { id: m, type: module, label: M }
+  - { id: e, type: ext, label: E }
+edges:
+  - { id: f-wired, type: gates, from: g, to: m, claim: wired, receipts: [s-code],
+      refusal: { refuses: x, kind: x_refused },
+      adequacy: { status: admitted, admitted_at: abc123, rationale: "G uses M" } }
+  - { id: f-spec, type: requests, from: m, to: e, claim: specified, receipts: [s-spec] }
+  - { id: f-deriv, type: derives, from: g, to: e, claim: derived, derivation: [f-wired], receipts: [s-spec] }

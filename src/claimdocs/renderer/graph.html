@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claim graph — claimdocs</title>
+  <script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden}
+    :root{--bg:#08090b;--panel:#0d0f13;--line:#1d2026;--muted:#6b7280;--text:#d6dae0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .page{display:grid;grid-template-rows:auto auto 1fr auto;width:100vw;height:100vh}
+    header{padding:12px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    header a.back{color:var(--muted);text-decoration:none;font-size:13px}
+    header h1{font-size:15px;font-weight:600;color:#fff;margin-right:4px}
+    header .sub{font-size:12.5px;color:var(--muted)}
+    header .spacer{flex:1}
+    .banner{background:#1c1407;border-bottom:1px solid #5a4516;color:#e6c98c;font-size:12px;padding:6px 22px;text-align:center;letter-spacing:.01em}
+    .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555b63}
+    .toggle{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:#aeb4bc;cursor:pointer;user-select:none;padding:5px 11px 5px 9px;border:1px solid var(--line);border-radius:999px;background:#0e1014}
+    .toggle .swatch{width:18px;height:0;border-top-width:2.5px;border-top-style:solid;border-radius:2px}
+    .toggle input{display:none}
+    .toggle.on{color:#fff;border-color:#3a4250;background:#13161c}
+    .btn{font-size:12px;color:#aeb4bc;background:#0e1014;border:1px solid var(--line);border-radius:6px;padding:5px 11px;cursor:pointer}
+    .stage{position:relative;min-width:0;min-height:0;overflow:hidden}
+    #cy{position:absolute;inset:0;background:radial-gradient(1200px 700px at 30% 16%,#14171d 0%,rgba(20,23,29,0) 60%),linear-gradient(#08090b,#060708)}
+    #cy::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.025) 1px,transparent 1px);background-size:28px 28px}
+    .drawer{background:var(--panel);border-top:1px solid var(--line);height:236px;display:flex;flex-direction:column;min-height:0}
+    .drawer.collapsed{height:44px}
+    .drawer-bar{display:flex;align-items:center;gap:12px;padding:0 22px;height:44px;flex-shrink:0;cursor:pointer}
+    .drawer-bar .grip{width:34px;height:4px;border-radius:3px;background:#2a2f37}
+    .drawer-bar .title{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:#7a828c;font-weight:700}
+    .drawer-bar .count{font-size:12px;color:#5b626b}
+    .drawer-bar .chev{margin-left:auto;color:#5b626b;font-size:13px}
+    .drawer-body{display:flex;gap:28px;padding:4px 22px 20px;overflow:auto;flex:1;min-height:0}
+    .drawer.collapsed .drawer-body{display:none}
+    .col h4{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:#555b63;margin-bottom:9px}
+    .col-guide{flex:0 0 420px}.col-types{flex:0 0 200px}
+    .col-sel{flex:1;min-width:0;border-left:1px solid var(--line);padding-left:26px}
+    .gtext{font-size:12.5px;color:#aab0b8;line-height:1.6}
+    .gtext b{color:#d6dae0}
+    .types .row{display:flex;align-items:center;gap:8px;margin:5px 0;color:#9aa0a8;font-size:12px}
+    .types .chip{width:11px;height:11px;border-radius:3px;flex-shrink:0;border:1px solid}
+    .sel-placeholder{color:#6b7280;font-size:13px;line-height:1.6}
+    .badge{display:inline-block;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:4px 9px;border-radius:4px;margin-bottom:10px}
+    .sel h2{font-size:16px;color:#fff;margin-bottom:5px;font-weight:600}
+    .sel .plain{font-size:13px;color:#c4cad2;line-height:1.55;margin-bottom:6px}
+    .sel .nonclaim{font-size:12px;color:#8b929b;line-height:1.5;border-left:2px solid #3a3f47;padding-left:10px;margin:6px 0 12px}
+    .sel-grid{display:flex;gap:24px;align-items:flex-start}
+    .sel-meta{flex:0 0 300px}.sel-receipts{flex:1;min-width:0}
+    .field{margin-bottom:11px}
+    .field .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.09em;color:#5b626b;margin-bottom:4px}
+    .field .v{font-size:12.5px;color:#d2d7dd;line-height:1.55}
+    .adq{display:inline-block;font-size:11px;border-radius:5px;padding:3px 8px;border:1px solid}
+    .adq.admitted{color:#5bbf6a;border-color:#2f5a36;background:#0c1a10}
+    .adq.unknown{color:#e6c98c;border-color:#5a4516;background:#1c1407}
+    .refusal{border-left:2px solid #f5a623;padding-left:10px}
+    .refusal strong{color:#c6ccd4}.refusal code{color:#f5a623;font-size:11.5px}
+    .receipt-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
+    .receipt{flex:0 0 300px;background:#0c0e12;border:1px solid var(--line);border-radius:8px;padding:12px}
+    .receipt .kind{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#4fc3f7;margin-bottom:6px}
+    .receipt .basis{font-size:11.5px;color:#aeb4bc;line-height:1.55;margin-bottom:8px}
+    .receipt .path{font-size:11px;color:#7aa2ff;word-break:break-all;font-family:ui-monospace,Menlo,monospace}
+    .receipt .sym{font-size:10.5px;color:#5bbf6a;word-break:break-all;margin-top:3px;font-family:ui-monospace,Menlo,monospace}
+    .receipt .ret{font-size:10.5px;color:#5b626b;margin-top:5px}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <a class="back" href="./">&larr; Atlas</a>
+      <h1 id="title">Claim graph</h1>
+      <span class="sub">Position = stage · line = claim strength.</span>
+      <span class="spacer"></span>
+      <span class="lbl">Layers</span>
+      <span id="toggles"></span>
+      <button class="btn" id="fit">Fit</button>
+    </header>
+    <div class="banner">This graph is a <b>mode-preserving readout</b>, not an authority surface. A line is a claim at its declared mode — rendering never upgrades it. Click any edge for its basis and adequacy.</div>
+    <div class="stage"><div id="cy"></div></div>
+    <div class="drawer" id="drawer">
+      <div class="drawer-bar" id="bar"><span class="grip"></span><span class="title">Guide</span><span class="count" id="count"></span><span class="chev">▾</span></div>
+      <div class="drawer-body">
+        <div class="col col-guide"><h4>How to read this map</h4>
+          <div class="gtext" id="guide"></div>
+        </div>
+        <div class="col col-types"><h4>Node kinds</h4><div class="types" id="types"></div></div>
+        <div class="col col-sel"><h4>Selection</h4>
+          <div id="selection"><div class="sel-placeholder">Nothing selected. Click a box or line for what it is, the code behind it, and what it does <i>not</i> claim.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+  // mode-preserving language — prose may not upgrade a claim. Sourced from vocab.json
+  // (each mode's canonical `wording`); this is only a fallback for legacy dialect names.
+  const MODE_WORDING_FALLBACK = {
+    wired:'is witnessed as', documented:'is witnessed as', specified:'is specified as',
+    derived:'is derived from', inferred:'is derived from', candidate:'is a candidate relation',
+    speculative:'is a candidate relation', deprecated:'was formerly', contradicted:'is disputed by' };
+  const wordingFor = c => (V.claim_modes[c]||{}).wording || MODE_WORDING_FALLBACK[c] || ('('+c+')');
+  let cy, V, laneHeaderIds = [], shortById = {};
+  const active = new Set();
+  const isReal = el => !el.data('laneHeader');
+  const vis = e => isReal(e) && active.has(e.data('claim'));
+  const LANE_W = 320, ROW_H = 96, FIRST_Y = 120;
+  const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+  function computePositions(nodes){
+    const byLane={}; nodes.forEach(n=>{(byLane[n.data.lane]||=[]).push(n.data.id)});
+    const maxC=Math.max(1,...Object.values(byLane).map(a=>a.length));
+    const center=FIRST_Y+(maxC-1)/2*ROW_H, pos={};
+    Object.entries(byLane).forEach(([lane,ids])=>ids.forEach((id,i)=>{
+      const rank=nodes.find(n=>n.data.id===id).data.rank;
+      pos[id]={x:rank*LANE_W,y:center+(i-(ids.length-1)/2)*ROW_H};
+    }));
+    return {pos,headerY:FIRST_Y-ROW_H*0.95,lanesPresent:byLane};
+  }
+  function readableFit(){ if(!cy)return; cy.resize(); cy.fit(cy.nodes(),70);
+    const z=cy.zoom(); if(z>1.25){cy.zoom(1.25);cy.center(cy.nodes())} else if(z<0.78){cy.zoom(0.85);cy.center(cy.nodes())} }
+  function applyLayers(){
+    cy.batch(()=>{
+      cy.edges().forEach(e=>e.style('display',vis(e)?'element':'none'));
+      cy.nodes().forEach(n=>{if(!n.data('laneHeader'))n.style('display',n.connectedEdges().some(vis)?'element':'none')});
+      laneHeaderIds.forEach(hid=>{const h=cy.getElementById(hid),lane=h.data('lane');
+        const any=cy.nodes().some(n=>isReal(n)&&n.data('lane')===lane&&n.style('display')!=='none');
+        h.style('display',any?'element':'none')});
+    });
+    const ve=cy.edges().filter(vis).length, vn=cy.nodes().filter(n=>isReal(n)&&n.style('display')!=='none').length;
+    document.getElementById('count').textContent=`${vn} nodes · ${ve} edges`;
+  }
+  function clearFocus(){cy.elements().removeClass('faded focus')}
+  function focusNode(n){ if(n.data('laneHeader'))return; const h=n.closedNeighborhood();
+    cy.batch(()=>{cy.elements().filter(isReal).addClass('faded'); h.removeClass('faded').addClass('focus')}); }
+  function clearSelection(){ document.getElementById('selection').innerHTML='<div class="sel-placeholder">Nothing selected. Click a box or line.</div>' }
+
+  function showEdge(e){
+    const d=e.data(), m=V.claim_modes[d.claim]||{}, ek=V.edge_kinds[d.type]||{};
+    const sName=shortById[d.source]||d.source, tName=shortById[d.target]||d.target;
+    const wording=wordingFor(d.claim);
+    const receipts=(d.receipts||[]).map(r=>`<div class="receipt">
+      <div class="kind">${esc(r.kind||'receipt')}</div><div class="basis">${esc(r.basis||'')}</div>
+      ${r.path?`<div class="path">${esc(r.repo?r.repo+'/':'')}${esc(r.path)}${r.line?':'+esc(r.line):''}</div>`:''}
+      ${r.symbol?`<div class="sym">↳ ${esc(r.symbol)}</div>`:''}
+      ${r.body_sha256?`<div class="ret">body pinned ${esc(String(r.body_sha256).slice(0,18))}…</div>`:''}
+      <div class="ret">retrieved ${esc(r.retrieved||'—')}</div></div>`).join('');
+    const adq=d.adequacy?`<div class="field"><div class="k">Adequacy (a human admission — not a proof)</div>
+      <div class="v"><span class="adq ${d.adequacy.status==='admitted'?'admitted':'unknown'}">${esc(d.adequacy.status||'unknown')}${d.adequacy.admitted_at?' @ '+esc(d.adequacy.admitted_at):''}</span>
+      ${d.adequacy.rationale?'<div style="margin-top:6px;color:#9aa0a8;font-size:11.5px">'+esc(d.adequacy.rationale)+'</div>':''}</div></div>`:
+      (m.witnesses?`<div class="field"><div class="k">Adequacy</div><div class="v"><span class="adq unknown">unadmitted</span></div></div>`:'');
+    const refusal=d.refusal?`<div class="field"><div class="k">Refusal (fails closed on)</div>
+      <div class="v refusal"><strong>Refuses:</strong> ${esc(d.refusal.refuses)}<br><strong>Kind:</strong> <code>${esc(d.refusal.kind)}</code></div></div>`:'';
+    const deriv=(d.derivation&&d.derivation.length)?`<div class="field"><div class="k">Derived from</div><div class="v">${d.derivation.map(esc).join(', ')}</div></div>`:'';
+    const nonclaim = m.witnesses
+      ? 'Resolved basis ≠ proven relation: claimdocs checks that the cited code exists and is unchanged since admission, not that it establishes this edge.'
+      : `This edge ${esc(wording)} — it is NOT witnessed in running code. A cited file existing is not a working seam.`;
+    document.getElementById('selection').innerHTML=`<div class="sel">
+      <span class="badge" style="background:${m.color||'#888'}22;color:${m.color||'#aaa'}">${esc(d.claim)}</span>
+      <h2>${esc(sName)} <span style="color:#5b626b;font-weight:400">${esc(wording)} ${esc(ek.verb||d.type)}</span> ${esc(tName)}</h2>
+      <div class="plain">${esc(m.help||'')}</div>
+      <div class="nonclaim"><b>Does not claim:</b> ${nonclaim}</div>
+      <div class="sel-grid"><div class="sel-meta">${adq}${refusal}${deriv}</div>
+      <div class="sel-receipts"><div class="field"><div class="k">Receipts (${(d.receipts||[]).length})</div></div>
+      <div class="receipt-row">${receipts}</div></div></div></div>`;
+  }
+  function showNode(n){
+    if(n.data('laneHeader'))return; const d=n.data(), t=V.node_kinds[d.type]||{color:'#888',label:d.type,what:'',why:''};
+    document.getElementById('selection').innerHTML=`<div class="sel">
+      <span class="badge" style="background:#14171c;color:${t.color}">${esc(t.label||d.type)}</span>
+      <h2>${esc(d.label)}</h2><div class="plain">${esc(t.what)}</div>
+      ${t.why?'<div class="nonclaim"><b>Why it matters:</b> '+esc(t.why)+'</div>':''}</div>`;
+  }
+  function toggleDrawer(open){const dr=document.getElementById('drawer');
+    dr.classList.toggle('collapsed', open===undefined?!dr.classList.contains('collapsed'):!open)}
+
+  Promise.all([fetch('data/graph.json').then(r=>r.json()), fetch('data/vocab.json').then(r=>r.json())])
+  .then(([data, vocab])=>{
+    V=vocab; document.getElementById('title').textContent=(vocab.title||'Claim graph');
+    document.title=(vocab.title||'Claim graph')+' — claimdocs';
+    vocab.default_modes.forEach(m=>active.add(m));
+    // toggles
+    const tg=document.getElementById('toggles');
+    Object.entries(vocab.claim_modes).forEach(([name,m])=>{
+      const on=vocab.default_modes.includes(name);
+      const lab=document.createElement('label'); lab.className='toggle'+(on?' on':'');
+      lab.innerHTML=`<span class="swatch" style="border-top-color:${m.color};border-top-style:${m.style==='solid'?'solid':'dashed'}"></span><input type="checkbox" ${on?'checked':''} data-claim="${name}">${name}`;
+      lab.querySelector('input').addEventListener('change',ev=>{
+        ev.target.checked?active.add(name):active.delete(name);
+        lab.classList.toggle('on',ev.target.checked); applyLayers(); readableFit();});
+      tg.appendChild(lab);
+    });
+    // guide text from vocab
+    const lanes=vocab.lanes.map(l=>l.label).join(' → ');
+    document.getElementById('guide').innerHTML=
+      `Read <b>left → right</b>: ${esc(lanes)}.<br><br>`+
+      Object.entries(vocab.claim_modes).map(([n,m])=>`<span style="color:${m.color}">●</span> <b>${n}</b> — ${esc(m.help||'')}`).join('<br>')+
+      `<br><br>Default view shows only: <b>${vocab.default_modes.join(', ')}</b>. Toggling the rest inflates the graph — that delta is the finding.`;
+
+    data.nodes.forEach(n=>shortById[n.data.id]=n.data.short_label||n.data.label);
+    const {pos,headerY,lanesPresent}=computePositions(data.nodes);
+    const laneLabel={}; vocab.lanes.forEach(l=>laneLabel[l.id]=l.label);
+    const headers=Object.keys(lanesPresent).map(lane=>{
+      const rank=data.nodes.find(n=>n.data.lane===lane).data.rank, id='__lane_'+lane; laneHeaderIds.push(id);
+      return {data:{id,laneHeader:true,lane,label:(laneLabel[lane]||lane).toUpperCase()},
+        position:{x:rank*LANE_W,y:headerY},locked:true,grabbable:false,selectable:false};
+    });
+    const nodeColor=ele=>(vocab.node_kinds[ele.data('type')]||{}).color||'#888';
+    cy=cytoscape({container:document.getElementById('cy'),
+      elements:{nodes:data.nodes.concat(headers),edges:data.edges}, wheelSensitivity:0.25,
+      layout:{name:'preset',positions:n=>pos[n.id()]||n.position(),fit:false},
+      style:[
+        {selector:'node',style:{'shape':ele=>(vocab.node_kinds[ele.data('type')]||{}).shape||'round-rectangle',
+          'background-color':nodeColor,'background-opacity':0.14,'border-width':1.6,'border-color':nodeColor,
+          'label':'data(short_label)','color':'#eef1f5','font-size':14,'font-weight':600,'min-zoomed-font-size':9,
+          'text-wrap':'wrap','text-max-width':150,'text-valign':'center','text-halign':'center','line-height':1.25,
+          'padding':'13px','width':'label','height':'label'}},
+        {selector:'node[?laneHeader]',style:{'background-opacity':0,'border-width':0,'label':'data(label)','color':'#5b646e',
+          'font-size':12,'font-weight':700,'min-zoomed-font-size':7,'width':1,'height':1,'events':'no'}},
+        {selector:'edge',style:{'width':1.9,'curve-style':'taxi','taxi-direction':'horizontal','taxi-turn':'45%','taxi-turn-min-distance':'16px',
+          'line-color':ele=>(vocab.claim_modes[ele.data('claim')]||{}).color||'#888',
+          'target-arrow-color':ele=>(vocab.claim_modes[ele.data('claim')]||{}).color||'#888',
+          'target-arrow-shape':'triangle-backcurve','arrow-scale':0.95,'opacity':0.9,
+          'line-style':ele=>{const s=(vocab.claim_modes[ele.data('claim')]||{}).style;return s==='solid'?'solid':'dashed'}}},
+        {selector:'edge[role="emit"]',style:{'line-style':'dotted'}},
+        {selector:'.faded',style:{'opacity':0.1,'text-opacity':0.1}},
+        {selector:'node.focus',style:{'background-opacity':0.24,'border-width':2.8}},
+        {selector:'edge:selected',style:{'line-color':'#fff','target-arrow-color':'#fff','width':2.8,'opacity':1}},
+        {selector:'node:selected',style:{'border-color':'#fff','border-width':2.8,'background-opacity':0.26}},
+      ]});
+    cy.on('tap','edge',ev=>{showEdge(ev.target); toggleDrawer(true)});
+    cy.on('tap','node',ev=>{showNode(ev.target); toggleDrawer(true)});
+    cy.on('mouseover','node',ev=>focusNode(ev.target));
+    cy.on('mouseout','node',clearFocus);
+    cy.on('tap',ev=>{if(ev.target===cy){clearFocus();clearSelection()}});
+    const types=document.getElementById('types');
+    [...new Set(data.nodes.map(n=>n.data.type))].filter(t=>vocab.node_kinds[t]).forEach(t=>{
+      const k=vocab.node_kinds[t], row=document.createElement('div'); row.className='row';
+      row.innerHTML=`<span class="chip" style="background:${k.color}22;border-color:${k.color}"></span>${k.label||t}`;
+      types.appendChild(row);
+    });
+    applyLayers(); readableFit();
+    let raf=0; new ResizeObserver(()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>cy&&cy.resize())}).observe(document.querySelector('.stage'));
+  });
+  document.getElementById('fit').addEventListener('click',readableFit);
+  document.getElementById('bar').addEventListener('click',()=>toggleDrawer());
+  </script>
+</body>
+</html>

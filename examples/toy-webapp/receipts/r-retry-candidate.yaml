@@ -1,0 +1,4 @@
+id: r-retry-candidate
+kind: spec
+retrieved: 2026-06-16
+basis: "A proposed dead-letter retry path from the worker back to sqlite. No commitment."

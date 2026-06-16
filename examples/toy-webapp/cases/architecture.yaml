@@ -1,0 +1,53 @@
+case_id: architecture
+title: "Toy webapp architecture"
+headline: "frontend → api → sqlite, with an async worker."
+nodes:
+  - { id: client-web, type: client,    label: "Web frontend",  short_label: "Frontend" }
+  - { id: svc-api,    type: service,   label: "API service",   short_label: "API" }
+  - { id: svc-worker, type: service,   label: "Background worker", short_label: "Worker" }
+  - { id: db-sqlite,  type: datastore, label: "SQLite",        short_label: "SQLite" }
+  - { id: q-jobs,     type: queue,     label: "Job queue",     short_label: "Job queue" }
+edges:
+  - id: e-web-api
+    type: calls
+    from: client-web
+    to: svc-api
+    claim: documented
+    receipts: [r-api-handler, r-api-test]
+    adequacy: { status: admitted, admitted_at: "seed", rationale: "handle_request is the HTTP entry; test exercises it." }
+  - id: e-api-db
+    type: persists
+    from: svc-api
+    to: db-sqlite
+    claim: documented
+    receipts: [r-save-user]
+    adequacy: { status: admitted, admitted_at: "seed", rationale: "save_user issues the INSERT." }
+  - id: e-api-queue
+    type: publishes
+    from: svc-api
+    to: q-jobs
+    claim: documented
+    receipts: [r-enqueue]
+    adequacy: { status: admitted, admitted_at: "seed", rationale: "enqueue_job puts the job." }
+  # designed, not built — a specified edge
+  - id: e-worker-queue
+    type: subscribes
+    from: svc-worker
+    to: q-jobs
+    claim: specified
+    receipts: [r-worker-spec]
+  # composition: user data reaches sqlite (frontend→api→sqlite). derived, depth-1.
+  - id: e-web-db
+    type: derives
+    from: client-web
+    to: db-sqlite
+    claim: derived
+    derivation: [e-web-api, e-api-db]
+    receipts: [r-worker-spec]
+  # proposed retry path — candidate, hidden by default
+  - id: e-worker-retry
+    type: persists
+    from: svc-worker
+    to: db-sqlite
+    claim: candidate
+    receipts: [r-retry-candidate]

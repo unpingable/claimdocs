@@ -1,0 +1,6 @@
+case_id: c
+receipts_inline: [{id: c, kind: code, repo: default, path: x.py, symbol: Foo, retrieved: 2026-06-16, basis: ok}]
+nodes: [{id: g, type: gate, label: G}, {id: m, type: module, label: M}]
+edges:
+  - { id: e1, type: gates, from: g, to: m, claim: wired, receipts: [c],
+      adequacy: {status: admitted, admitted_at: s} }

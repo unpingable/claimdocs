@@ -1,0 +1,8 @@
+id: r-api-handler
+kind: code
+repo: default
+path: src/api.py
+symbol: "def handle_request"
+retrieved: 2026-06-16
+basis: "handle_request is the HTTP entry point; it calls save_user and enqueue_job."
+body_sha256: sha256:df274a86818c52558dd1924e704ed28cee17ead7e507f581d5cc43eed9df1bd7

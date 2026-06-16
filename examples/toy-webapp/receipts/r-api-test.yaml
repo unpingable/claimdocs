@@ -1,0 +1,8 @@
+id: r-api-test
+kind: test
+repo: default
+path: src/test_api.py
+symbol: "def test_handle_request_persists_and_enqueues"
+retrieved: 2026-06-16
+basis: "exercises the persist + enqueue path through handle_request."
+body_sha256: sha256:1555664ef58a63ecad2f1e17a34b3782be6f9375b3553a08cca54ee0db1a3ad0

@@ -1,0 +1,21 @@
+project: fixtures
+title: "claimdocs self-test"
+default_modes: [wired]
+witnessing_basis_kinds: [code, test]
+claim_modes:
+  wired:     { color: "#4fc3f7", witnesses: true, help: "witnessed" }
+  specified: { color: "#f5a623", style: dashed, help: "specified" }
+  derived:   { color: "#c08bff", style: dotted, requires_derivation: true, help: "derived" }
+  candidate: { color: "#5a6068", style: dotted, excluded_from_default: true, max_per_case: 2, help: "candidate" }
+basis_kinds:
+  code: { resolvable: true }
+  spec: {}
+node_kinds:
+  gate:   { color: "#f70", lane: logic, label: Gate }
+  module: { color: "#77f", lane: logic, label: Module }
+  ext:    { color: "#c8f", lane: external, label: Ext }
+edge_kinds:
+  gates:   { role: gate, verb: gates, refusal_required: true }
+  requests: { role: request, verb: requests }
+  derives: { role: derive, verb: derives }
+lanes: [logic, external]

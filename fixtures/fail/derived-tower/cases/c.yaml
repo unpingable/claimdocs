@@ -1,0 +1,10 @@
+case_id: c
+receipts_inline:
+  - {id: c, kind: code, repo: default, path: x.py, symbol: Foo, retrieved: 2026-06-16, basis: ok}
+  - {id: d, kind: spec, retrieved: 2026-06-16, basis: ok}
+nodes: [{id: g, type: gate, label: G}, {id: m, type: module, label: M}, {id: e, type: ext, label: E}]
+edges:
+  - { id: e0, type: gates, from: g, to: m, claim: wired, receipts: [c], refusal: {refuses: x, kind: xr},
+      adequacy: {status: admitted, admitted_at: s} }
+  - { id: e1, type: derives, from: m, to: e, claim: derived, derivation: [e0], receipts: [d] }
+  - { id: e2, type: derives, from: g, to: e, claim: derived, derivation: [e1], receipts: [d] }

@@ -1,0 +1,6 @@
+case_id: c
+receipts_inline: [{id: only-spec, kind: spec, retrieved: 2026-06-16, basis: prop}]
+nodes: [{id: g, type: gate, label: G}, {id: m, type: module, label: M}]
+edges:
+  - { id: e1, type: gates, from: g, to: m, claim: wired, receipts: [only-spec], refusal: {refuses: x, kind: xr},
+      adequacy: {status: admitted, admitted_at: s} }

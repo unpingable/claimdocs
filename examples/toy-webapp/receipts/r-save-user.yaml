@@ -1,0 +1,8 @@
+id: r-save-user
+kind: code
+repo: default
+path: src/api.py
+symbol: "def save_user"
+retrieved: 2026-06-16
+basis: "save_user writes a user record to sqlite."
+body_sha256: sha256:e3e6a5f59972c64dae36635c2ba56e3cb47b8afb7fb81a5574246b2ba3b55ae1

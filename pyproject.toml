@@ -1,0 +1,19 @@
+[project]
+name = "claimdocs"
+version = "0.0.1"
+description = "Write documentation claims as data; refuse to render strong claims without declared basis. Docs that fail closed."
+requires-python = ">=3.10"
+dependencies = ["PyYAML>=6.0"]
+
+[project.scripts]
+claimdocs = "claimdocs.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+claimdocs = ["renderer/*.html", "template/*"]

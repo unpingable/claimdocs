@@ -1,0 +1,45 @@
+# claimdocs project config — your vocabulary pack.
+# claimdocs core knows node/edge/claim_mode/basis/adequacy/freshness. Everything below
+# is yours: rename freely. Nothing here is hard-coded in the engine.
+project: my-system
+title: "My System — claim graph"
+
+# Modes shown in the default render. Witnessing modes (witnesses: true) require a basis
+# of a witnessing_basis_kind, or the linter refuses them (a doc proposes; it does not witness).
+default_modes: [documented]
+witnessing_basis_kinds: [code, test, receipt_hash]
+
+claim_modes:
+  documented: { color: "#4fc3f7", style: solid,  witnesses: true,
+                help: "witnessed in running, tested code" }
+  specified:  { color: "#f5a623", style: dashed,
+                help: "a spec or stub names it; not witnessed in running code" }
+  derived:    { color: "#c08bff", style: dotted, requires_derivation: true,
+                help: "composition of other edges makes it so (depth-1)" }
+  candidate:  { color: "#5a6068", style: dotted, excluded_from_default: true, max_per_case: 2,
+                help: "a reserved name, no forcing case yet" }
+  # deprecated: { color: "#555", style: dashed, help: "was formerly true; retired" }  # tombstone — enable when you have one
+
+basis_kinds:
+  code:           { resolvable: true,  help: "file + symbol in a source tree" }
+  test:           { resolvable: true,  help: "a test that exercises the edge" }
+  receipt_hash:   { help: "a content-addressed receipt id" }
+  spec:           { help: "a design doc / ADR / gap spec" }
+  url:            { help: "an external record (a web plugin could resolve this)" }
+
+node_kinds:
+  surface: { color: "#4fc3f7", lane: entry,  label: Surface, what: "an entry point" }
+  gate:    { color: "#ff7043", lane: logic,   label: Gate, shape: round-hexagon, what: "an authority boundary that admits or refuses" }
+  module:  { color: "#7aa2ff", lane: logic,   label: Module, what: "an implementation unit" }
+  store:   { color: "#5bbf6a", lane: custody, label: Store, shape: round-tag, what: "where receipts/state persist" }
+  external:{ color: "#c08bff", lane: external,label: External, what: "a sibling system / dependency" }
+
+# edges over an authority boundary must declare what they refuse (refusal_required: true).
+edge_kinds:
+  calls:   { role: flow, verb: "calls" }
+  gates:   { role: gate, verb: "gates", refusal_required: true }
+  emits:   { role: emit, verb: "emits a receipt to" }
+  requests: { role: request, verb: "requests a claim from" }
+  derives: { role: derive, verb: "is composed from" }
+
+lanes: [entry, logic, custody, external]
