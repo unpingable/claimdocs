@@ -25,10 +25,13 @@ The model may propose the skeleton. It may not certify its own proposals as arch
 
 claimdocs verifies declared **bases**, not truth itself.
 
-1. **Existence + freshness (mechanical).** `verify-basis` resolves a cited `file + symbol`
-   against a source tree and confirms its body is unchanged since admission. Rename a
-   symbol and it screams; *hollow* a function's body to `assert True` and it screams too —
-   the body hash moved. This is the property URL-receipt docs can't have.
+1. **Existence + cited-body freshness (mechanical).** `verify-basis` resolves a cited
+   `file + symbol` against a source tree and confirms its **own body** is unchanged since
+   admission. Rename a symbol and it screams; *hollow that symbol's body* to `assert True`
+   and it screams too — the body hash moved. The honest limit: it catches basis
+   disappearance and *cited-body* hollowing, **not** a hollowed *helper the basis calls*
+   (different symbol, byte-identical cited body). That is transitive drift — `cited-fresh ≠
+   closure-fresh` — named in the CHARTER, not built.
 2. **Adequacy (human).** Whether a resolved basis actually *establishes* an edge is an
    admission, recorded on the edge with the reviewed sha. claimdocs surfaces it, pins its
    freshness, and **never claims to have proven it.** `resolved ≠ supported`. See

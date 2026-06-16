@@ -31,14 +31,47 @@ So claimdocs separates the layers and never conflates them:
 | Layer | Question | Mechanical? | Where |
 |---|---|---|---|
 | **existence** | does the cited path/symbol still resolve? | yes | `verify-basis` |
-| **freshness** | is the symbol body unchanged since admission? | yes (hashable bases) | `verify-basis` (`body_sha256`) |
+| **freshness (cited body)** | is the cited symbol's **own body** unchanged since admission? | yes (hashable bases) | `verify-basis` (`body_sha256`) |
+| **freshness (closure)** | are the basis's callees / fixtures / deps unchanged? | reserved — see *Transitive drift* | not built |
 | **execution** | does the cited test/probe pass? | yes | reserved — not built (plugin seam) |
 | **adequacy** | does this basis actually establish this edge? | **no** | a human admission on the edge |
 | **admission** | under what mode may this edge render? | human/policy | the claim mode |
 
-`verify-basis` reports all three honest layers and says, out loud, that it proves
-existence and freshness but **not** adequacy. Freshness narrows the hollow-test gap; only
-re-admission closes it.
+`verify-basis` reports each honest layer and says, out loud, what it proves and what it
+does not. It proves **cited-body** existence and freshness — not closure freshness, not
+adequacy. So the report word is `cited_body_fresh`, never a bare `fresh`: a function is not
+its bytes when its bytes call out. Freshness narrows the *cited-body* hollow-test gap; it
+does not touch transitive drift (below), and re-admission cannot close that gap while its
+trigger is a cited-body-hash delta — because the delta never fires.
+
+## Freshness scope — transitive drift
+
+Freshness is presently freshness of the **cited basis artifact**, not freshness of the
+full semantic support closure. A cited function, theorem, test, or document may remain
+byte-fresh while a callee, fixture, dependency, dataset, or external assumption changes
+underneath it. claimdocs treats this as **transitive drift**: fresh cited bytes do not
+imply the basis still establishes the edge.
+
+```
+fresh cited bytes ≠ still-establishing claim
+```
+
+Concretely: a cited test body is unchanged, but the helper it calls gets hollowed to
+`return True`. The cited symbol is byte-identical, so freshness stays green; execution
+isn't built; and adequacy re-admission is *triggered by* `body_sha256` deltas, which don't
+fire — so the human is never summoned. The backstop inherits the front line's blind spot.
+
+So the honest doctrine stack is:
+
+```
+Resolved      ⊬ supported      (a symbol resolving is not the relation holding)
+Cited-fresh   ⊬ closure-fresh  (unchanged bytes are not an unchanged support closure)
+Closure-fresh ⊬ adequate       (an unchanged closure is not a sufficient one)
+Rendered      ⊬ true           (a drawn edge is not a fact)
+```
+
+claimdocs catches **basis disappearance and cited-body hollowing**. It does **not** catch
+helper/callee/fixture hollowing — that is transitive drift, named here, not built.
 
 ## spec_is_not_wired
 
@@ -97,7 +130,27 @@ authorized. Build each only when a case forces it.
   clean tree or explicit override (do not admit against soup). Writes `adequacy.status /
   admitted_by / admitted_at_sha / basis_body_sha256 / rationale`. `admitted_by` is a plain
   string for now — do not summon the signature goblin yet. This is a *mutating governance
-  operation inside the doc engine* and gets its own pass, not a bolt-on.
+  operation inside the doc engine* and gets its own pass, not a bolt-on. **Its trigger
+  cannot be a cited-body-hash delta alone** — that delta is blind to transitive drift, so a
+  ceremony keyed on it is never summoned when a helper gets hollowed (it inherits the
+  freshness blind spot). The trigger must eventually include closure deltas (below).
+- **Normalized freshness hash (ergonomic, design only).** Raw `body_sha256` false-positives
+  on a `ruff format` pass — every hashable basis invalidates at once for zero semantic
+  change, demanding a mass re-admit (friction that gets deferred). Fix: split the receipt
+  into `raw_body_sha256` (forensic, exact bytes) and a `normalized_body_sha256` (the
+  freshness trigger) computed over an AST dump with location metadata stripped. Then
+  reformatting moves `raw` but not `normalized`, while `assert True` moves both. This is
+  *not* an adequacy probe — it only lowers false-positive churn. Build against the settled
+  freshness-scope model, not in isolation.
+- **Declared-closure freshness (`depends_on`, the middle rung).** The cheap, honest,
+  non-inferred answer to transitive drift: a basis may declare `depends_on: [{path, symbol},
+  …]`, and `verify-basis` hashes those *explicitly declared* dependencies and reports a
+  `closure` status alongside `cited_body`. The author declares what the basis rests on;
+  claimdocs checks whether the declared closure moved. Conservative (misses undeclared
+  deps), but it gives a real `closure: fresh|changed|unchecked` instead of one smug `fresh`.
+  **Do not build inferred call graphs** — transitive-closure hashing is expensive,
+  approximate, and blind to dynamic dispatch; that is a later/plugin goblin, distinct from
+  this declared rung.
 - **`deprecated` / `contradicted` modes.** Tombstones. `deprecated` (was true, retired)
   has obvious demand; `contradicted` (an edge refuted by a stronger basis elsewhere) needs
   conflicting-claim machinery and no case yet.

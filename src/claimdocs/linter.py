@@ -245,9 +245,12 @@ def lint(root, vocab: Vocabulary, report: Report, today: str,
 
     if verify:
         report.note("")
-        report.note(f"basis existence:  {n_resolved} resolved, {n_unresolved} missing")
-        report.note(f"basis freshness:  {n_fresh} fresh, {n_changed} changed-since-admission, "
-                    f"{n_unhashable} not body-hashable (existence-only)")
-        report.note(f"edge adequacy:    {n_admitted} admitted, {n_unadmitted} unadmitted "
-                    f"— ADMISSION is human; claimdocs proves existence/freshness, NOT adequacy")
+        report.note(f"basis existence:       {n_resolved} resolved, {n_unresolved} missing")
+        # NOT bare "fresh": this checks the cited symbol's OWN body, not its closure.
+        report.note(f"cited-body freshness:  {n_fresh} cited-body-fresh, {n_changed} changed-since-admission, "
+                    f"{n_unhashable} not body-hashable")
+        report.note("closure freshness:     unchecked (a fresh cited body may call a changed helper — "
+                    "transitive drift; see CHARTER)")
+        report.note(f"edge adequacy:         {n_admitted} admitted, {n_unadmitted} unadmitted "
+                    f"— human admission; claimdocs proves cited-body existence/freshness, NOT closure or adequacy")
     return report
