@@ -65,6 +65,42 @@ def main():
     else:
         ok = False; print(f"FAIL: body-hash semantics wrong (a==b:{ha==hb}, a!=c:{ha!=hc})")
 
+    # firewall (behavioral): a vocab pack is DATA, never code. config.py calls itself
+    # "the firewall"; this pins it. Under yaml.load the tag below would execute os.system
+    # and drop the sentinel; under yaml.safe_load it must refuse before any execution.
+    # This is the real firebreak — stronger than grepping the engine for domain words,
+    # because data cannot import. (The core/vocab boundary the engine was designed around.)
+    import tempfile
+    sentinel = os.path.join(tempfile.gettempdir(), f"claimdocs_firewall_breach_{os.getpid()}")
+    if os.path.exists(sentinel):
+        os.unlink(sentinel)
+    poison = f'modes:\n  evil: !!python/object/apply:os.system ["touch {sentinel}"]\n'
+    with tempfile.NamedTemporaryFile("w", suffix=".yml", delete=False) as fh:
+        fh.write(poison); ppath = fh.name
+    try:
+        load_vocabulary(ppath)
+    except Exception:
+        pass  # refusing to parse is fine; executing is not
+    finally:
+        os.unlink(ppath)
+    if not os.path.exists(sentinel):
+        print("ok: vocab firewall holds (code in a pack is refused, not executed)")
+    else:
+        ok = False; os.unlink(sentinel)
+        print("FAIL: a vocab pack executed code — firewall breached (yaml.load?)")
+
+    # firewall (lexical smoke alarm): no ENGINE module may hardcode a specimen's domain
+    # vocabulary. Weaker than the data-firewall above (the dialogue's point: bind on
+    # structure, not a wordlist) — kept only to catch a dev wiring a domain term into core.
+    DOMAIN = ("spendability", "spend_wall", "standing_class", "blast_radius", "desync")
+    eng = os.path.join(ROOT, "src", "claimdocs")
+    leaks = [f"{fn}:{t}" for fn in sorted(os.listdir(eng)) if fn.endswith(".py")
+             for t in DOMAIN if t in open(os.path.join(eng, fn)).read().lower()]
+    if not leaks:
+        print("ok: engine carries no specimen domain vocabulary")
+    else:
+        ok = False; print(f"FAIL: engine contaminated by domain vocab: {leaks}")
+
     print("\nPASS" if ok else "\nFAILED")
     return 0 if ok else 1
 

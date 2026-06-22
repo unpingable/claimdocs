@@ -161,3 +161,17 @@ authorized. Build each only when a case forces it.
 - **Language/source plugins.** Python symbol resolution is the one built-in resolver. Other
   languages, `lake build`, URL receipts, git-sha pinning are a plugin seam (`basis_kinds`
   carries `resolvable`); the seam is designed, the plugins are not built.
+- **Corpus / cross-case query layer (radioactive — named, not built).** A single rendered
+  case is inert. A *corpus* of cases queried in aggregate is not: group crossing/gap edges
+  by `(claim-shape × subject-shape)` and the honest witness map reads backwards as a
+  prospecting map for where the next gap will be — the same file, opposite direction. So a
+  future query/report layer over many cases is **not** governed like one render. The rule,
+  fixed before any build because it decides the whole layer: **gate on result *shape*, not
+  query *words*.** Any query whose *output* is a pattern over (claim-shape × subject-shape),
+  a mismatch-frequency ranking, or recurrence across subjects is standing-gated,
+  purpose-declared, and itself receipted — regardless of phrasing. A keyword blocklist gets
+  out-clevered (the wording is infinite; the output's form is finite). Default: individual
+  receipts open, pattern-extraction governed. claimdocs answers *"prove the crossing that
+  already happened,"* never *"find the exploitable gap."* Surfaced 2026-06-22 from a
+  desync / witness-finance exploration; recorded so the retrofit cost is visible. Do not
+  build a query layer on spec — and never a "where is the fence low" mode.
