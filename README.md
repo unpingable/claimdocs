@@ -6,16 +6,17 @@ basis. Docs that fail closed.**
 Most docs are text artifacts: someone writes prose, someone draws boxes, everyone slowly
 lies by accident, and six months later the diagram is folklore with an SVG export.
 claimdocs treats docs as **claims under custody** — every edge in your system graph
-carries exactly one *claim mode* and cites a *basis*, and the linter refuses to render a
-strong claim whose basis it cannot resolve.
+carries exactly one *claim mode* and cites a *basis*. The linter refuses a witnessing
+mode without an allowed witnessing-basis receipt; `verify-basis` separately resolves
+supported source references.
 
 The corporate move ("point an LLM at the repo, generate docs") produces plausible mulch.
 The admissible move:
 
 ```
 human or LLM proposes nodes / edges, marking weak ones as specified / candidate
-  -> linter REJECTS any witnessing-mode edge that doesn't cite resolvable basis
-  -> a human admits adequacy (does this basis actually support this edge?) at a pinned sha
+  -> linter REJECTS any witnessing-mode edge without an allowed witnessing-basis receipt
+  -> a human records an adequacy admission (does this basis support this edge?) at a pinned sha
   -> the site renders from the admitted graph, preserving claim mode
 ```
 
@@ -59,15 +60,18 @@ edge_kinds: { calls: {...}, gates: { refusal_required: true }, requests: {...} }
 
 ```bash
 pip install -e .                       # or: PYTHONPATH=src python -m claimdocs ...
-claimdocs init                         # scaffold claimdocs.yml + cases/ + receipts/
-claimdocs lint                         # citation-shape validation
-claimdocs verify-basis --repo .        # resolve code/test bases + freshness against a tree
-claimdocs report                       # the fail-closed instrument panel (mode/adequacy)
-claimdocs render                       # emit docs/data/{graph,vocab}.json + the site
-claimdocs serve                        # serve docs/ at localhost:8000
+claimdocs --project . init                         # scaffold configuration and graph directories
+claimdocs --project . lint                         # graph/receipt shape validation
+claimdocs --project . verify-basis --repo .        # existence + cited-body freshness
+claimdocs --project . report                       # recorded modes and adequacy posture
+claimdocs --project . render                       # emit generated docs readout
+claimdocs --project . serve                        # serve docs/ at localhost:8000
 ```
 
 `--repo NAME=PATH` binds a named source tree (receipts carry a `repo:` field).
+`--project` and `--today` are global options and must appear before the command;
+`--repo` belongs after `verify-basis`. See [HOWTO.md](HOWTO.md) for a complete
+read-only inspection and the interpretation boundary.
 
 ## Layout
 
@@ -88,8 +92,9 @@ src/claimdocs/
 
 ## First serious specimen
 
-[**governor-atlas**](../governor-atlas) — the Agent Governor architecture and its
-constellation seams, as a claimdocs case. AG's whole thesis is "language is a proposal,
+[**governor-atlas**](https://github.com/unpingable/governor-atlas) — a bounded classic
+Agent Governor specimen and a set of requested constellation interfaces, as a claimdocs
+case. AG's whole thesis is "language is a proposal,
 not an authority"; claimdocs is that thesis pointed at AG's own documentation. The
 specimen proves the engine is serious; it must not contaminate the primitive (claimdocs
 knows nothing about "standing" or "spend walls").
