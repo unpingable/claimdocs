@@ -24,6 +24,14 @@ The model may propose the skeleton. It may not certify its own proposals as arch
 
 ## Two promises, kept separate
 
+The [October 2026 public-beta assessment](CLAIMDOCS-PUBLIC-BETA-ASSESSMENT.md)
+recommends conditional inclusion only after a separately admitted bounded repair.
+See [current implementation inventory](CLAIMDOCS-CURRENT-STATE.md),
+[proposed obligation semantics](CLAIMDOCS-OBLIGATION-MODEL.md) and
+[one proposed beta slice](CLAIMDOCS-BETA-SLICE.md). Obligation lifecycle and
+complete unresolved enumeration are not implemented; ClaimDocs is not part of
+the frozen Constellation candidate.
+
 claimdocs verifies declared **bases**, not truth itself.
 
 1. **Existence + cited-body freshness (mechanical).** `verify-basis` resolves a cited
